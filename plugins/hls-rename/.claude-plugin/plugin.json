@@ -1,0 +1,9 @@
+{
+  "name": "hls-rename",
+  "version": "0.1.0",
+  "description": "Semantically-aware Haskell symbol renaming via HLS textDocument/rename",
+  "author": {
+    "name": "nghamilton"
+  },
+  "keywords": ["haskell", "hls", "rename", "refactor", "lsp"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "ann",
+  "version": "0.1.0",
+  "description": "Annotation-based code review CLI for multi-agent workflows",
+  "author": {
+    "name": "nghamilton"
+  },
+  "keywords": ["annotations", "code-review", "multi-agent", "orchestrator"]
+}

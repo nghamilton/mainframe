@@ -19,6 +19,28 @@
       },
       "keywords": ["nix", "haskell", "ghc", "cabal", "flake"],
       "category": "development"
+    },
+    {
+      "name": "hls-rename",
+      "source": "./plugins/hls-rename",
+      "description": "Semantically-aware Haskell symbol renaming via HLS textDocument/rename",
+      "version": "0.1.0",
+      "author": {
+        "name": "nghamilton"
+      },
+      "keywords": ["haskell", "hls", "rename", "refactor", "lsp"],
+      "category": "development"
+    },
+    {
+      "name": "ann",
+      "source": "./plugins/ann",
+      "description": "Annotation-based code review CLI for multi-agent workflows",
+      "version": "0.1.0",
+      "author": {
+        "name": "nghamilton"
+      },
+      "keywords": ["annotations", "code-review", "multi-agent", "orchestrator"],
+      "category": "development"
     }
   ]
 }
