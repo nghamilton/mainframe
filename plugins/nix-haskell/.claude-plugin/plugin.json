@@ -1,0 +1,9 @@
+{
+  "name": "nix-haskell",
+  "version": "0.1.0",
+  "description": "Nix-aware Haskell development patterns for Claude Code agents",
+  "author": {
+    "name": "nghamilton"
+  },
+  "keywords": ["nix", "haskell", "ghc", "cabal", "flake"]
+}

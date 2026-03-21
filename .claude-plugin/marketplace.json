@@ -1,0 +1,24 @@
+{
+  "name": "mainframe",
+  "owner": {
+    "name": "nghamilton"
+  },
+  "metadata": {
+    "description": "Personal plugin marketplace",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "nix-haskell",
+      "source": "./plugins/nix-haskell",
+      "description": "Nix-aware Haskell development patterns for Claude Code agents",
+      "version": "0.1.0",
+      "author": {
+        "name": "nghamilton"
+      },
+      "keywords": ["nix", "haskell", "ghc", "cabal", "flake"],
+      "category": "development"
+    }
+  ]
+}
