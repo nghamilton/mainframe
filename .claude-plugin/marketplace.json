@@ -41,6 +41,17 @@
       },
       "keywords": ["annotations", "code-review", "multi-agent", "orchestrator"],
       "category": "development"
+    },
+    {
+      "name": "nix",
+      "source": "./plugins/nix",
+      "description": "Nix tool resolution and environment management for Claude Code agents",
+      "version": "0.1.0",
+      "author": {
+        "name": "nghamilton"
+      },
+      "keywords": ["nix", "nixos", "flake", "shell", "devShell", "tooling"],
+      "category": "development"
     }
   ]
 }

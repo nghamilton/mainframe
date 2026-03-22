@@ -1,0 +1,9 @@
+{
+  "name": "nix",
+  "version": "0.1.0",
+  "description": "Nix tool resolution and environment management for Claude Code agents",
+  "author": {
+    "name": "nghamilton"
+  },
+  "keywords": ["nix", "nixos", "flake", "shell", "devShell", "tooling"]
+}
