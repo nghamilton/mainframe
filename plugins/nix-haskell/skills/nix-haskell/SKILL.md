@@ -92,6 +92,7 @@ Read the project's `flake.nix` before modifying it. Match the existing patterns.
 
 ## Common mistakes to avoid
 
+- **Do not** use `nix shell` with `cabal-install` and `ghc` to build Haskell projects. `nix shell` gives you bare tools without the project's nix-provided dependencies, so cabal will download and compile everything from Hackage. Always use `nix develop --command cabal build` instead - the project's devShell provides GHC with all dependencies pre-built by nix.
 - **Do not** run `cabal install` - nix manages dependencies.
 - **Do not** run `stack build` unless the project specifically uses stack.
 - **Do not** modify `cabal.project` to add source-repository-package stanzas - use nix overlays instead.

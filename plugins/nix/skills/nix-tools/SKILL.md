@@ -89,6 +89,7 @@ The package name is not always the same as the binary name (e.g., `ripgrep` prov
 ## Things to never do
 
 - **Never use `#` in nix commands.** Use `--impure --expr` instead.
+- **Never use `nix shell` to get language-specific build tools (e.g., `cabal-install`, `ghc`, `cargo`, `rustc`) for building projects.** `nix shell` provides bare tools without the project's nix-managed dependencies, so the build tool will download and compile dependencies from upstream registries (Hackage, crates.io, etc.) instead of using nix. Always use `nix develop --command <tool>` for project builds - the project's devShell provides tools with all dependencies pre-built by nix. `nix shell` is only for standalone utilities (`jq`, `tree`, `curl`, etc.).
 - **Never search `/nix/store`** for binaries. Paths are content-addressed and not stable.
 - **Never use `apt`, `brew`, `pip install --global`, `npm install -g`**, `cargo install` or any non-nix global installer.
 - **Never suggest `nix-env -i`**. It pollutes the user profile. Use `nix shell` for temporary access or add to `flake.nix` for permanent access.
