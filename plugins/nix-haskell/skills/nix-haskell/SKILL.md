@@ -22,19 +22,21 @@ nix develop --command haskell-language-server-wrapper --lsp
 
 Never run `nix develop` on its own then type commands. Never run `cabal build` or `ghc` directly - they will either not be found or use the wrong version.
 
-## Avoiding the `#` character
+## CRITICAL: Never use `#` in nix commands
 
-The `#` in nix flake references (e.g., `nixpkgs#haskellPackages.aeson`) triggers a manual approval prompt in Claude Code. Use `--expr` instead:
+The `#` character in flake references (e.g., `nixpkgs#haskellPackages.aeson`) triggers a manual approval prompt in Claude Code. **Always use `--impure --expr` or `--expr` instead.**
 
 ```bash
-# Bad - triggers prompt
+# WRONG - triggers permission prompt:
 nix eval nixpkgs#haskellPackages.aeson.version
+nix shell nixpkgs#cabal-install nixpkgs#ghc --command cabal build
 
-# Good
+# CORRECT:
 nix eval --expr '(import <nixpkgs> {}).haskellPackages.aeson.version'
+nix shell --impure --expr 'let p = import <nixpkgs> {}; in [ p.cabal-install p.ghc ]' --command cabal build
 ```
 
-For `nix build` and `nix run`, use `--expr` or `.#` (dot-hash from the current flake) where possible.
+This applies to ALL nix commands: `nix shell`, `nix build`, `nix eval`, `nix run`. No exceptions.
 
 ## Build commands
 
