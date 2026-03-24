@@ -53,17 +53,21 @@ This applies to ALL nix commands: `nix shell`, `nix build`, `nix eval`, `nix run
 
 Prefer `cabal build` inside `nix develop` for fast iteration. Use `nix build` to verify the full derivation builds cleanly (CI-equivalent).
 
-## Adding a Haskell dependency
+## Adding or fixing Haskell dependencies
+
+**When you see build errors like "Could not find module", "unknown package", or a missing dependency in `build-depends`, the fix is almost always to update `flake.nix`.** Do not try to install packages with `cabal install`, `nix shell`, or any other method. All Haskell libraries come from nixpkgs via the project's flake.
+
+### Workflow
 
 1. Add the package to the `.cabal` file's `build-depends`.
 2. Check if the package exists in nixpkgs:
    ```bash
    nix eval --expr 'builtins.hasAttr "aeson" (import <nixpkgs> {}).haskellPackages'
    ```
-3. If it exists: `nix develop --command cabal build` should just work.
-4. If it does not exist or needs an override, modify `flake.nix`. Common patterns:
+3. If it exists and the project's `flake.nix` already pulls in `haskellPackages` broadly: `nix develop --command cabal build` should just work.
+4. If the build fails because nix doesn't provide the package to cabal, you need to **modify `flake.nix`** to include it. Read the existing `flake.nix` first and match its patterns. Common approaches:
 
-   **Adding a package from Hackage:**
+   **Adding a package from Hackage (not in nixpkgs or wrong version):**
    ```nix
    haskellPackages = pkgs.haskellPackages.override {
      overrides = self: super: {
@@ -79,7 +83,21 @@ Prefer `cabal build` inside `nix develop` for fast iteration. Use `nix build` to
    );
    ```
 
+   **Adding to the devShell's packages (if the flake uses `shellFor` or similar):**
+   Look for `packages = p: [...]` or `buildInputs` in the devShell definition and add the package there.
+
 5. After modifying `flake.nix`, run `nix develop --command cabal build` to verify.
+6. If you changed flake inputs, run `nix flake update` first.
+
+### Common error -> fix mapping
+
+| Error | Fix |
+|---|---|
+| `Could not find module 'Data.Aeson'` | Add `aeson` to `.cabal` `build-depends`, ensure flake provides it |
+| `unknown package: foo` | Package not in the nix shell - update `flake.nix` to include it |
+| `Setup: Encountered missing or private dependencies: foo` | Same - update `flake.nix` |
+| `Could not resolve dependencies` | Version conflict - add an override in `flake.nix` |
+| `error: attribute 'foo' missing` in nix build | Package not in nixpkgs - use `callHackage` or `callCabal2nix` in flake overrides |
 
 ## Flake structure
 

@@ -96,6 +96,12 @@ The package name is not always the same as the binary name (e.g., `ripgrep` prov
 - **Never hardcode `/nix/store/...` paths.** They change on every rebuild.
 - **Never assume tools are globally available.** Always verify with `which` or `command -v` first.
 
+## Missing libraries vs missing tools
+
+`nix shell` is for **standalone tools** (jq, curl, tree). It is NOT for project dependencies or build-time libraries.
+
+If a project build fails because a library is missing (e.g., "Could not find module", "unknown package", missing C library), the fix is to **update the project's `flake.nix`** to provide that dependency via nix. Do not try to install libraries with `nix shell`, `pip install`, `cabal install`, or any other method. Read the project's `flake.nix`, match its patterns, and add the dependency there. Then rebuild with `nix develop --command <build-tool>`.
+
 ## Inside `nix develop`
 
 When already inside a `nix develop` shell (check for `IN_NIX_SHELL` or `NIX_BUILD_TOP` environment variables), tools from the devShell are on PATH directly. No need for `nix develop --command` prefix.
