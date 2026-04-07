@@ -1,0 +1,9 @@
+{
+  "name": "gmail-mcp",
+  "version": "0.1.0",
+  "description": "Gmail MCP tools: newsletter digest, mark-as-read, archive",
+  "author": {
+    "name": "nghamilton"
+  },
+  "keywords": ["gmail", "newsletters", "email", "mcp", "digest"]
+}
