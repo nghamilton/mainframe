@@ -52,6 +52,17 @@
       },
       "keywords": ["nix", "nixos", "flake", "shell", "devShell", "tooling"],
       "category": "development"
+    },
+    {
+      "name": "gmail-mcp",
+      "source": "./plugins/gmail-mcp",
+      "description": "Gmail MCP tools: newsletter digest, mark-as-read, archive",
+      "version": "0.1.0",
+      "author": {
+        "name": "nghamilton"
+      },
+      "keywords": ["gmail", "newsletters", "email", "mcp", "digest"],
+      "category": "productivity"
     }
   ]
 }
