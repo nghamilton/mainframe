@@ -34,11 +34,14 @@ email(s) for fact-checking.
 Use the `gmail_search_messages` tool from the gmail-mcp server to search for unread messages:
 
 ```
-gmail_search_messages(query: "is:unread", maxResults: 50)
+gmail_search_messages(query: "is:unread in:inbox", maxResults: 150)
 ```
 
 This returns messageId, from, subject, and date for each result. You do NOT need to
 fetch full message bodies yet -- classification in Step 2 uses only from/subject.
+
+Fetch up to 150 results to ensure at least 20 newsletters survive the Step 2 filter.
+Most inbox emails are non-newsletters, so a large initial fetch is necessary.
 
 **Do NOT record any messageIds yet.** IDs are only added to the approved list during
 Step 2, after classification. Recording them here and passing them to Step 7 would mark
@@ -81,6 +84,8 @@ When in doubt, exclude.
 - Personal or direct correspondence between people
 - Promotional / sales / discount emails
 - Social media notifications (Facebook, Instagram, etc.)
+- Single-stock analysis or investor deep dives (e.g. Seeking Alpha individual stock posts)
+- Event invitations, webinar promos, podcast episode announcements with no news content
 - If uncertain, **exclude**
 
 If zero emails pass the filter, tell the user clearly: no newsletter/blog emails found in
@@ -132,6 +137,28 @@ Each sub-agent prompt must contain:
 ```
 For each email, extract up to 5 key informational points.
 
+CRITICAL QUALITY GATE -- apply to every point before including it:
+
+1. Does it contain a specific fact (number, name, date, outcome, decision)?
+   NO -> discard it.
+2. Could it be guessed from the subject line alone?
+   YES -> discard it.
+3. Does it describe that a thing EXISTS rather than what the thing SAYS?
+   YES -> discard it. Read the thing and extract what it says.
+4. Is it a framework, methodology, or opinion with no concrete data?
+   YES -> discard it.
+
+Examples of points that FAIL this gate:
+- "The Neuron's framework for learning AI in 2026: a five-level proficiency stack"
+  FAILS #3 and #4: describes a framework exists, says nothing concrete.
+- "Code.org's new CEO on computer science education in the age of AI"
+  FAILS #2 and #3: restates subject, describes an interview exists.
+- "Finding a diet that works is enough of a win; think in trade-offs"
+  FAILS #4: opinion with no data.
+
+If an email contains ONLY framework/opinion/meta content with no extractable facts,
+return an empty points array for that email. Do not pad with low-quality summaries.
+
 LOCATE THE RICHEST CONTENT REGION FIRST. Many newsletters concentrate news in a
 structural section:
 
@@ -151,6 +178,53 @@ ENRICH WITH WEB FETCH WHERE CONTENT IS THIN. If an email has only teaser text an
 links, use web_fetch on 1-2 significant article URLs. Prioritise when: the body gives
 only a headline, the story seems significant, and the link is first-party. Skip sponsor
 links, social media, and paywalled sites.
+
+WHAT COUNTS AS A POINT: A point must contain at least one SPECIFIC FACT -- a number,
+a name, a date, an outcome, a measurement, a decision, or a concrete event. If you
+cannot state a specific fact from the email, DO NOT include it as a point. Topic
+descriptions are NOT points. "War disrupts energy supply" is a topic. "Iran strikes
+knock out 40% of Gulf refining capacity; Brent crude hits $127/bbl" is a point.
+
+BAD (topic, no facts, or meta-description):
+- "How the Iran war affects energy and food prices"
+- "AI automation is advancing across industries"
+- "New research on longevity biomarkers"
+- "Deep dive on OpenAI demand signals post-$122B raise"
+- "Alexander Berger published annual Letter from the CEO"
+- "Sam Altman got testy with investor Brad Gerstner over share sales"
+
+The last three fail because: "deep dive on X" describes an article, not a fact.
+"Someone published a letter" tells you an email was sent -- that is not information.
+The letter CONTAINS information: extract THAT. "Got testy" is gossip with no
+material consequence.
+
+THE CORE TEST: does the point tell the reader something they did not know before?
+If it just tells them an email/article/letter EXISTS, it fails. Read the actual
+content and extract what is IN it.
+
+BAD: "Alexander Berger published annual Letter from the CEO"
+GOOD: "Open Philanthropy deployed $620M in 2025; 38% to AI safety, up from 22%"
+
+BAD: "Code.org's new CEO on computer science education in the age of AI"
+GOOD: "Code.org pivoting curriculum to pair-programming with AI copilots; 54% of
+US high schools now offer CS, up from 35% in 2020"
+
+The bad versions tell you a document exists. The good versions tell you what is IN
+the document. Always extract what is IN the document.
+
+If the email body is too thin to extract facts (just a teaser), use web_fetch on
+the linked article. If you still find no specific facts, return an empty points
+array for that email rather than producing a content-free summary.
+
+GOOD (specific facts):
+- "Iranian strikes cut 3.2M bbl/day Gulf output; diesel up 44% in 48 hours"
+- "OpenAI API load: 6B to 15B tokens/min in 5 months"
+- "Blood pressure, glucose, lipids outperform aging clocks as mortality predictors (n=12,400)"
+
+If the email body is too thin to extract specific facts (just teasers/headlines with
+no detail), use web_fetch on the linked article to get the facts. If you still cannot
+find specific facts after fetching, skip that email entirely rather than producing a
+vague topic summary.
 
 WRITING STYLE: Each point is a single sentence for fast skimming -- short, active,
 no filler. Omit greetings, sign-offs, sponsors, CTAs. Write like a wire headline: state
@@ -205,7 +279,7 @@ dark-mode-friendly digest.
 - Ideas & Society -- `#5b21b6` (purple) badge with white text
 
 **Visual structure:**
-- Each newsletter gets a section header: publication name (bold) + subject line (muted)
+- Each newsletter gets a section header: publication name only (bold). No subject line.
 - Each bullet: `[CATEGORY BADGE]  Point text  [link]` link
 - Category badge is a small inline pill: `<span style="...">AI</span>` style
 - Bullet text is plain -- no additional color on the main text
@@ -228,22 +302,27 @@ It must never include IDs of excluded emails, regardless of how many emails were
 fetched in Step 1. If you are unsure whether a given ID belongs in this list, it
 does not belong in this list.
 
-Call both tools with the full `newsletter_ids` array:
+**YOU MUST call both tools. This step is NOT optional. Do not skip it.**
 
+First, mark as read:
 ```
-gmail_mark_messages_read(
-  messageIds: ["19d62cd3809a013b", "19d6222b3d0e63f9", ...]
-)
-gmail_archive_messages(
-  messageIds: ["19d62cd3809a013b", "19d6222b3d0e63f9", ...]
-)
+gmail_mark_messages_read(messageIds: ["19d62cd3809a013b", ...])
 ```
+
+Then, archive (remove from inbox):
+```
+gmail_archive_messages(messageIds: ["19d62cd3809a013b", ...])
+```
+
+Use the exact same `newsletter_ids` list for both calls. Both calls are required.
+Do not end the skill without completing both. If one fails, retry it once before
+giving up.
 
 Show the result briefly below the digest:
 
-> *Marked 8 newsletters as read and archived.*
+> *Marked N newsletters as read and archived.*
 
-If either tool call fails, note it in one line and offer to retry:
+If both retries fail, show:
 
 > *Could not mark as read/archive -- server may be restarting. Ask me to retry.*
 
