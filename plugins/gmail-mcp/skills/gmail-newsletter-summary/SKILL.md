@@ -8,11 +8,10 @@ description: >
   Only process emails that are newsletters or blog post updates -- ignore transactional,
   personal, work, or notification emails entirely.
 compatibility: >
-  Requires Gmail MCP connected.
-  Requires the gmail-mcp custom integration connected at
-  https://gmcp.deeplucid.xyz/mcp
-  (Authorization: Bearer uninsured-copier-crank).
-  This provides the gmail_mark_messages_read tool used in Step 7.
+  Requires the gmail-mcp server running (localhost:3000 or via Cloudflare tunnel).
+  Configure in .mcp.json with type "http" and url "http://localhost:3000/mcp".
+  This server provides all tools: gmail_search_messages, gmail_read_message,
+  gmail_mark_messages_read, gmail_archive_messages.
 ---
 
 # Gmail Newsletter Summary Skill
@@ -32,14 +31,14 @@ email(s) for fact-checking.
 
 ### Step 1 -- Fetch unread emails
 
-Use the Gmail MCP to search for unread messages:
+Use the `gmail_search_messages` tool from the gmail-mcp server to search for unread messages:
 
 ```
-query: "is:unread"
+gmail_search_messages(query: "is:unread", maxResults: 50)
 ```
 
-Retrieve up to 50 results. For each result, fetch the full message body so you have
-enough content to classify and summarise.
+This returns messageId, from, subject, and date for each result. You do NOT need to
+fetch full message bodies yet -- classification in Step 2 uses only from/subject.
 
 **Do NOT record any messageIds yet.** IDs are only added to the approved list during
 Step 2, after classification. Recording them here and passing them to Step 7 would mark
@@ -95,7 +94,10 @@ dispatch sub-agents to extract points from batches of emails in parallel.
 **3a -- Prepare batches**
 
 Split the classified newsletters into batches of **up to 8 emails each**. For each email
-in a batch, include the messageId, sender/publication name, subject, and full body text.
+in a batch, include the messageId, sender/publication name, and subject.
+
+Each sub-agent will use `gmail_read_message` to fetch the full body for each email
+in its batch. Do NOT fetch bodies in the main context -- let the sub-agents do it.
 
 **3b -- Dispatch one Agent per batch**
 
@@ -106,8 +108,9 @@ For each batch, launch a sub-agent using the **Agent tool** with these parameter
 
 Each sub-agent prompt must contain:
 
-1. **The full email content** for every email in its batch (messageId, sender, subject,
-   body text).
+1. **The email list** for its batch: messageId, sender/publication, subject for each.
+   Tell the sub-agent to call `gmail_read_message(messageId: "...")` for each email
+   to fetch the full body text.
 2. **The extraction rules** (see below -- copy them verbatim into each prompt).
 3. **An instruction to return structured JSON** -- an array of objects, one per email:
    ```json
