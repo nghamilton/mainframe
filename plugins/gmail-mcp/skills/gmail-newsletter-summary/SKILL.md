@@ -217,36 +217,39 @@ dark-mode-friendly digest.
 - Max 1 sentence per bullet (2 only for merged points)
 - Font: system sans-serif, readable at a glance
 
-### Step 7 -- Mark included newsletters as read
+### Step 7 -- Mark as read and archive
 
-After rendering the digest, call `gmail_mark_messages_read` from the gmail-mcp
-integration (gmcp.deeplucid.xyz) with the `newsletter_ids` list built during Step 2.
+After rendering the digest, call both `gmail_mark_messages_read` and
+`gmail_archive_messages` from the gmail-mcp server with the `newsletter_ids` list
+built during Step 2.
 
 **This list contains only emails that explicitly passed the Step 2 classification.**
 It must never include IDs of excluded emails, regardless of how many emails were
 fetched in Step 1. If you are unsure whether a given ID belongs in this list, it
 does not belong in this list.
 
-Call the tool once with the full `newsletter_ids` array:
+Call both tools with the full `newsletter_ids` array:
 
 ```
 gmail_mark_messages_read(
   messageIds: ["19d62cd3809a013b", "19d6222b3d0e63f9", ...]
 )
+gmail_archive_messages(
+  messageIds: ["19d62cd3809a013b", "19d6222b3d0e63f9", ...]
+)
 ```
 
-The tool returns e.g. "8/8 message(s) marked as read." -- show this briefly below
-the digest:
+Show the result briefly below the digest:
 
-> *Marked 8 newsletters as read.*
+> *Marked 8 newsletters as read and archived.*
 
-If the tool call fails, note it in one line and offer to retry:
+If either tool call fails, note it in one line and offer to retry:
 
-> *Could not mark as read -- server may be restarting. Ask me to retry.*
+> *Could not mark as read/archive -- server may be restarting. Ask me to retry.*
 
 ### Step 8 -- Offer follow-up actions
 
-After the digest and mark-as-read confirmation, offer one line:
+After the digest and confirmation, offer one line:
 > *Reply with a topic to go deeper.*
 
 
